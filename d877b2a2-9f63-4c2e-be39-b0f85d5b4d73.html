@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="zh-CN">
+ <head> 
+  <meta charset="utf-8"> 
+  <link rel="canonical" href="https://blog.csdn.net/lebsharing/article/details/122967490"> 
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"> 
+  <meta name="renderer" content="webkit"> 
+  <meta name="force-rendering" content="webkit"> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+  <meta name="report" content="{&quot;pid&quot;: &quot;blog&quot;, &quot;spm&quot;:&quot;1001.2101&quot;}">  
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+  <link rel="alternate" media="handheld" href="#"> 
+  <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+  <meta name="applicable-device" content="pc"> 
+  <link href="https://g.csdnimg.cn/static/logo/favicon32.ico" rel="shortcut icon" type="image/x-icon"> 
+  <title>Flutter项目中无用图片的检测及清理-CSDN博客</title>  
+  <meta name="keywords" content="flutter项目中无用图片的检测及清理"> 
+  <meta name="csdn-baidu-search" content="{&quot;autorun&quot;:true,&quot;install&quot;:true,&quot;keyword&quot;:&quot;flutter项目中无用图片的检测及清理&quot;}"> 
+  <meta name="description" content="文章浏览阅读3.1k次。随着项目规模增长，无用图片会增加Flutter应用的包体积。本文介绍一种原理，通过Python扫描dart文件来判断图片是否使用，以及实现方法，包括图片路径匹配和异常情况分析。同时探讨了可能的误判情况，如图片名拼接和非图片引用导致的误判，并提出其他实现方式，如静态引用优化。"> 
+  <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/release/blogv2/dist/pc/css/detail_enter-cbbad54155.min.css">  
+  <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/release/blogv2/dist/pc/themesSkin/skin3-template/skin3-template-762f7595fd.min.css">    
+  <meta name="toolbar" content="{&quot;type&quot;:&quot;0&quot;,&quot;fixModel&quot;:&quot;1&quot;}">   
+  <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/public/sandalstrap/1.4/css/sandalstrap.min.css"> 
+  <style>.MathJax_Display {text-align: center; margin: 1em 0em; position: relative; display: block!important; text-indent: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; width: 100%} .MathJax .merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%} .MathJax .MJX-monospace {font-family: monospace} .MathJax .MJX-sans-serif {font-family: sans-serif} #MathJax_Tooltip {background-color: InfoBackground; color: InfoText; border: 1px solid black; box-shadow: 2px 2px 5px #AAAAAA; -webkit-box-shadow: 2px 2px 5px #AAAAAA; -moz-box-shadow: 2px 2px 5px #AAAAAA; -khtml-box-shadow: 2px 2px 5px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true'); padding: 3px 4px; z-index: 401; position: absolute; left: 0; top: 0; width: auto; height: auto; display: none} .MathJax {display: inline; font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0} .MathJax:focus, body :focus .MathJax {display: inline-table} .MathJax.MathJax_FullWidth {text-align: center; display: table-cell!important; width: 10000em!important} .MathJax img, .MathJax nobr, .MathJax a {border: 0; padding: 0; margin: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; vertical-align: 0; line-height: normal; text-decoration: none} img.MathJax_strut {border: 0!important; padding: 0!important; margin: 0!important; vertical-align: 0!important} .MathJax span {display: inline; position: static; border: 0; padding: 0; margin: 0; vertical-align: 0; line-height: normal; text-decoration: none} .MathJax nobr {white-space: nowrap!important} .MathJax img {display: inline!important; float: none!important} .MathJax * {transition: none; -webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none} .MathJax_Processing {visibility: hidden; position: fixed; width: 0; height: 0; overflow: hidden} .MathJax_Processed {display: none!important} .MathJax_ExBox {display: block!important; overflow: hidden; width: 1px; height: 60ex; min-height: 0; max-height: none} .MathJax .MathJax_EmBox {display: block!important; overflow: hidden; width: 1px; height: 60em; min-height: 0; max-height: none} .MathJax_LineBox {display: table!important} .MathJax_LineBox span {display: table-cell!important; width: 10000em!important; min-width: 0; max-width: none; padding: 0; border: 0; margin: 0} .MathJax .MathJax_HitBox {cursor: text; background: white; opacity: 0; filter: alpha(opacity=0)} .MathJax .MathJax_HitBox * {filter: none; opacity: 1; background: transparent} #MathJax_Tooltip * {filter: none; opacity: 1; background: transparent} @font-face {font-family: MathJax_Main; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Main-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Main-Regular.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Main-bold; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Main-Bold.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Main-Bold.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Main-italic; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Main-Italic.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Main-Italic.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Math-italic; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Math-Italic.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Math-Italic.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Caligraphic; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Caligraphic-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Caligraphic-Regular.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Size1; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Size1-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Size1-Regular.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Size2; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Size2-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Size2-Regular.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Size3; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Size3-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Size3-Regular.otf?V=2.7.2') format('opentype')} @font-face {font-family: MathJax_Size4; src: url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/woff/MathJax_Size4-Regular.woff?V=2.7.2') format('woff'), url('https://csdnimg.cn/release/blog_mathjax/fonts/HTML-CSS/TeX/otf/MathJax_Size4-Regular.otf?V=2.7.2') format('opentype')} .MathJax .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}</style>    
+ </head> 
+ <body class="nodata " style=""> 
+  <div id="toolbarBox" style="min-height: 48px;"></div>    
+  <link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/pc/css/blog_code-01256533b5.min.css"> 
+  <link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/chart-3456820cac.css"> 
+  <link rel="stylesheet" href="https://g.csdnimg.cn/lib/swiper/6.0.4/css/swiper.css">   
+  <div class="main_father clearfix  justify-content-center mainfather-concision" style="height:100%;"> 
+   <div class="container clearfix container-concision" id="mainBox" style="width:100%">  
+    <main style="width:100%">  
+     <div class="blog-content-box"> 
+      <div class="article-header-box"> 
+       <div class="article-header"> 
+        <div class="article-title-box"> 
+         <h1 class="title-article" id="articleContentId">Flutter项目中无用图片的检测及清理</h1> 
+        </div> 
+        <div class="article-info-box"> 
+         <div class="article-bar-top"> 
+          <img class="article-type-img" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Foriginal.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+          <div class="bar-content"> 
+           <img class="article-vip-img-new" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FidentityVipNew.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+           <a class="follow-nickName " href="https://blog.csdn.net/lebsharing" target="_blank" rel="noopener" title="珍惜当下-拥抱明天">珍惜当下-拥抱明天</a> 
+           <img class="article-time-img article-heard-img" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FnewUpTime2.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+           <span class="time">已于&nbsp;2022-02-16 19:12:55&nbsp;修改</span> 
+           <div class="read-count-box"> 
+            <img class="article-read-img article-heard-img" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FarticleReadEyes2.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+            <span class="read-count">阅读量3.1k</span> 
+            <a id="blog_detail_zk_collection" class="un-collection" data-report-click="{&quot;mod&quot;:&quot;popu_823&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4232&quot;,&quot;ab&quot;:&quot;new&quot;}"> <img class="article-collect-img article-heard-img un-collect-status isdefault" style="display:inline-block" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FtobarCollect2.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> <img class="article-collect-img article-heard-img collect-status isactive" style="display:none" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FtobarCollectionActive2.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> <span class="name">收藏</span> <span class="get-collection"> 3 </span> </a> 
+            <div class="read-count-box is-like"> 
+             <img class="article-read-img article-heard-img" style="display:none" id="is-like-imgactive-new" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FnewHeart2023Active.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+             <img class="article-read-img article-heard-img" style="display:block" id="is-like-img-new" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FnewHeart2023Black.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+             <span class="read-count" id="blog-digg-num">点赞数 </span> 
+            </div> 
+           </div> 
+          </div> 
+         </div> 
+         <div class="blog-tags-box"> 
+          <div class="tags-box artic-tag-box"> 
+           <span class="label">分类专栏：</span> 
+           <a class="tag-link" href="https://blog.csdn.net/lebsharing/category_9591437.html" target="_blank" rel="noopener">flutter</a> 
+           <span class="label">文章标签：</span> 
+           <a rel="noopener" data-report-query="spm=1001.2101.3001.4223" data-report-click="{&quot;mod&quot;:&quot;popu_626&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4223&quot;,&quot;strategy&quot;:&quot;flutter&quot;,&quot;ab&quot;:&quot;new&quot;,&quot;extra&quot;:&quot;{\&quot;searchword\&quot;:\&quot;flutter\&quot;}&quot;}" data-report-view="{&quot;mod&quot;:&quot;popu_626&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4223&quot;,&quot;strategy&quot;:&quot;flutter&quot;,&quot;ab&quot;:&quot;new&quot;,&quot;extra&quot;:&quot;{\&quot;searchword\&quot;:\&quot;flutter\&quot;}&quot;}" class="tag-link" href="https://so.csdn.net/so/search/s.do?q=flutter&amp;t=all&amp;o=vip&amp;s=&amp;l=&amp;f=&amp;viparticle=" target="_blank">flutter</a> 
+          </div> 
+         </div> 
+         <div class="up-time">
+          <span>于&nbsp;2022-02-16 18:20:31&nbsp;首次发布</span>
+         </div> 
+         <div class="slide-content-box"> 
+          <div class="article-copyright"> 
+           <div class="creativecommons">
+             版权声明：本文为博主原创文章，遵循
+            <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"> CC 4.0 BY-SA </a>版权协议，转载请附上原文出处链接和本声明。 
+           </div> 
+           <div class="article-source-link">
+             本文链接：
+            <a href="https://blog.csdn.net/lebsharing/article/details/122967490" target="_blank">https://blog.csdn.net/lebsharing/article/details/122967490</a> 
+           </div> 
+          </div> 
+         </div> 
+         <div class="operating"> 
+          <a class="href-article-edit slide-toggle">版权</a> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+      <div id="blogHuaweiyunAdvert"></div> 
+      <div class="ai-abstract-box"> 
+       <div class="ai-abstract"> 
+        <div class="abstract-content"> 
+         <img class="lock-img" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-home.csdnimg.cn%2Fimages%2F20240711042549.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 随着项目规模增长，无用图片会增加Flutter应用的包体积。本文介绍一种原理，通过Python扫描dart文件来判断图片是否使用，以及实现方法，包括图片路径匹配和异常情况分析。同时探讨了可能的误判情况，如图片名拼接和非图片引用导致的误判，并提出其他实现方式，如静态引用优化。 
+        </div> 
+        <span>摘要由CSDN通过智能技术生成</span> 
+       </div> 
+      </div> 
+      <article class="baidu_pl"> 
+       <div id="article_content" class="article_content clearfix"> 
+        <link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/kdoc_html_views-1a98987dfd.css"> 
+        <link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/ck_htmledit_views-044f2cf1dc.css"> 
+        <div id="content_views" class="markdown_views prism-atom-one-dark"> 
+         <svg xmlns="http://www.w3.org/2000/svg" style="display: none;"> 
+          <path stroke-linecap="round" d="M5,0 0,2.5 5,5z" id="raphael-marker-block" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path> 
+         </svg> 
+         <h3><a id="_0"></a>一、背景</h3> 
+         <p>随着项目规模或者迭代周期的增加，项目中会保留部分已经不在使用的图片，这些资源的存在，会增加包体积。<br> 在优化app大小时，常采用的手段之一就是对不在使用的图片进行清理。</p> 
+         <h3><a id="_5"></a>二、原理</h3> 
+         <p>在flutter中使用asset中的图片的时候，都是根据图片路径加载图片，如：Image.asset(“assets/account/watsapp.png”),<br> 根据图片的这样使用方式，我们就可以使用图片的名字或者图片的相对路径（assets/account/watsapp.png），在dart文件中搜索，如果在dart文件中我们找到该匹配的字符串，我们就认为该图片已经存在。<br> 【<strong>也存在误判的情况，我们在<code>异常说明</code>这部分中解释说明，也欢迎大家补充</strong>】</p> 
+         <h4><a id="_12"></a>三、实现方法</h4> 
+         <p>使用Python，获取项目中所有添加的图片绝对路径，并用存储到List中，然后读取dart文件，看在dart文件中是否存在与图片名称（watsapp.png）或者图片相对路径（assets/account/watsapp.png）相同的字符串，如果找到匹配的字符串，就认为图片在项目中使用，然后将图片地址从集合中移除，分析完所有dart文件，最后还在集合中的图片就可以认为是项目中已经不在使用的图片。</p> 
+         <p><strong>以下是使用Python3实现的完整代码：</strong></p> 
+         <pre style="max-height:100%"><code class="prism language-python"><span class="token comment">#!/user/local/bin/python3</span>
+<span class="token comment">#将本文件放在Flutter项目的根目录</span>
+
+<span class="token keyword">from</span> genericpath <span class="token keyword">import</span> isdir
+<span class="token keyword">import</span> imghdr
+<span class="token keyword">from</span> operator <span class="token keyword">import</span> delitem
+<span class="token keyword">import</span> os
+<span class="token keyword">from</span> re <span class="token keyword">import</span> search
+<span class="token keyword">import</span> re
+<span class="token keyword">import</span> string
+<span class="token keyword">from</span> sys <span class="token keyword">import</span> path
+<span class="token keyword">import</span> sys
+<span class="token keyword">from</span> tokenize <span class="token keyword">import</span> String
+<span class="token keyword">from</span> typing <span class="token keyword">import</span> List
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"---Analyze unused Assets----"</span><span class="token punctuation">)</span>
+<span class="token comment">#项目目录</span>
+projectAbsRootPath <span class="token operator">=</span> sys<span class="token punctuation">.</span>path<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+<span class="token comment">#图片所在的资源目录路径</span>
+assetPath<span class="token operator">=</span><span class="token string">"/assets"</span>
+<span class="token comment">#项目中dart代码所在目录</span>
+libPath <span class="token operator">=</span> projectAbsRootPath<span class="token operator">+</span> <span class="token string">"/lib"</span>
+assetAbPath <span class="token operator">=</span> projectAbsRootPath<span class="token operator">+</span>assetPath
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"projectRootPath:"</span> <span class="token operator">+</span> projectAbsRootPath <span class="token operator">+</span>  <span class="token string">"   assets:"</span> <span class="token operator">+</span>assetAbPath <span class="token operator">+</span> <span class="token string">"     lib:"</span> <span class="token operator">+</span> libPath<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"----------开始查找图片--------------"</span><span class="token punctuation">)</span>
+<span class="token comment">#遍历目录，将图片存储到list中的方法</span>
+<span class="token keyword">def</span> <span class="token function">searchImage</span><span class="token punctuation">(</span>filePath<span class="token punctuation">:</span>String<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token builtin">list</span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    isDir <span class="token operator">=</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>isdir<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> isDir<span class="token punctuation">:</span>
+        <span class="token keyword">for</span> f <span class="token keyword">in</span> os<span class="token punctuation">.</span>listdir<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> f<span class="token punctuation">.</span>startswith<span class="token punctuation">(</span><span class="token string">"."</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">print</span><span class="token punctuation">(</span>filePath<span class="token operator">+</span><span class="token string">"/"</span><span class="token operator">+</span>f<span class="token punctuation">)</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                tList <span class="token operator">=</span> searchImage<span class="token punctuation">(</span>filePath<span class="token operator">+</span><span class="token string">"/"</span><span class="token operator">+</span>f<span class="token punctuation">)</span>
+                <span class="token builtin">list</span><span class="token punctuation">.</span>extend<span class="token punctuation">(</span>tList<span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> imghdr<span class="token punctuation">.</span>what<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span> <span class="token keyword">in</span> <span class="token punctuation">{
+            <!-- --></span><span class="token string">"jpg"</span><span class="token punctuation">,</span><span class="token string">"bmp"</span><span class="token punctuation">,</span><span class="token string">"jpeg"</span><span class="token punctuation">,</span><span class="token string">"rgb"</span><span class="token punctuation">,</span><span class="token string">"tif"</span><span class="token punctuation">,</span><span class="token string">"png"</span><span class="token punctuation">}</span><span class="token punctuation">:</span>
+            <span class="token builtin">list</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token builtin">list</span>
+
+<span class="token comment">#项目中使用的图片资源路径集合</span>
+imageList <span class="token operator">=</span> searchImage<span class="token punctuation">(</span>assetAbPath<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"-------------遍历dart文件，分析未使用的图片---------"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">matchAndDelImage</span><span class="token punctuation">(</span>contentStr<span class="token punctuation">:</span>String<span class="token punctuation">,</span><span class="token builtin">list</span><span class="token punctuation">:</span>List<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment">#遍历拷贝的list,操作原始的list，list[:]是对原始的一个拷贝</span>
+    <span class="token keyword">for</span> imgPath <span class="token keyword">in</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token comment">#以文件名匹配图片的使用</span>
+        <span class="token comment"># pList = imgPath.split("/")</span>
+        <span class="token comment"># imgName = pList[-1]</span>
+        <span class="token comment">#以使用的文件路径匹配图片</span>
+        index <span class="token operator">=</span> imgPath<span class="token punctuation">.</span>find<span class="token punctuation">(</span>assetPath<span class="token punctuation">)</span>
+        imgName <span class="token operator">=</span> imgPath<span class="token punctuation">[</span>index<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">]</span>
+
+        match <span class="token operator">=</span> re<span class="token punctuation">.</span>search<span class="token punctuation">(</span>imgName<span class="token punctuation">,</span>contentStr<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> match<span class="token punctuation">:</span>
+            <span class="token builtin">list</span><span class="token punctuation">.</span>remove<span class="token punctuation">(</span>imgPath<span class="token punctuation">)</span>
+            <span class="token comment"># print("used--&gt;" + imgPath)</span>
+
+<span class="token comment">#</span>
+<span class="token keyword">def</span> <span class="token function">searchImageInDart</span><span class="token punctuation">(</span>filePath<span class="token punctuation">:</span>String<span class="token punctuation">,</span><span class="token builtin">list</span><span class="token punctuation">:</span>List<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>isdir<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> f <span class="token keyword">in</span> os<span class="token punctuation">.</span>listdir<span class="token punctuation">(</span>filePath<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            searchImageInDart<span class="token punctuation">(</span>filePath<span class="token operator">+</span><span class="token string">"/"</span><span class="token operator">+</span>f<span class="token punctuation">,</span><span class="token builtin">list</span><span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>filePath<span class="token punctuation">,</span><span class="token string">"r"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>
+            contentStr <span class="token operator">=</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            f<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>contentStr<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">:</span>
+                matchAndDelImage<span class="token punctuation">(</span>contentStr<span class="token punctuation">,</span><span class="token builtin">list</span><span class="token punctuation">)</span>
+
+<span class="token comment">#      </span>
+searchImageInDart<span class="token punctuation">(</span>libPath<span class="token punctuation">,</span>imageList<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"------在dart文件中未找到被使用的图片如下-----size:"</span> <span class="token operator">+</span> <span class="token builtin">str</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>imageList<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> img <span class="token keyword">in</span> imageList<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"may be unused--&gt;"</span> <span class="token operator">+</span> img<span class="token punctuation">)</span>
+    <span class="token comment"># os.remove(img)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"-------------------分析完成-------------------------------"</span><span class="token punctuation">)</span>
+</code></pre> 
+         <p><strong>说明：</strong><br> 1、Flutter项目中存放图片的目录可以自己指定，本示例存放图片的目录是：projectroot/assets</p> 
+         <pre style="max-height:100%"><code class="prism language-bash">projectroot
+	- assets
+		- images
+			- splash
+			- user
+		- fonts
+	- lib
+</code></pre> 
+         <p><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fi-blog.csdnimg.cn%2Fblog_migrate%2F869b6fad9907f8330eb9e2109858d6c2.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="在这里插入图片描述"></p> 
+         <p>2、在matchAndDelImage()方法中实现了根据图片名字或者路径匹配图片的处理。</p> 
+         <p>蓝色框中是根据图片文件名字匹配。<br> 红色框中是获取图片相对路径，根据相对路径匹配。<br> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fi-blog.csdnimg.cn%2Fblog_migrate%2F4b2a61bed751b17217eb13f2d6b9dc2d.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="在这里插入图片描述"><br> 3、图片删除默认没有开启，但是会把没有使用的图片路径打印出来。<br> 如果需要删除图片，取消对<code>os.remove(img)</code>的注释即可。<br> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fi-blog.csdnimg.cn%2Fblog_migrate%2Fec0d5fe832c5bc915637b3e764256437.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="在这里插入图片描述"></p> 
+         <h4><a id="_127"></a>四、异常说明</h4> 
+         <p>1、图片实际被使用，但是被认为未使用<br> (a)图片名或者路径以拼接的方式使用<br> 如：</p> 
+         <pre style="max-height:100%"><code class="prism language-java">  <span class="token class-name">String</span> <span class="token function">getImageByScore</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token operator">?</span> score<span class="token punctuation">)</span> <span class="token punctuation">{
+            <!-- --></span>
+    <span class="token class-name">String</span> name <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span>
+    <span class="token keyword">switch</span> <span class="token punctuation">(</span>score<span class="token punctuation">)</span> <span class="token punctuation">{
+            <!-- --></span>
+      <span class="token keyword">case</span> <span class="token number">2</span><span class="token operator">:</span>
+        name <span class="token operator">=</span> <span class="token string">'images/excellent'</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Application</span><span class="token punctuation">.</span>isPreferZh<span class="token punctuation">)</span> <span class="token punctuation">{
+            <!-- --></span>
+      name <span class="token operator">=</span> name <span class="token operator">+</span> <span class="token string">'_cn'</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> name <span class="token operator">+</span> <span class="token string">'.png'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+</code></pre> 
+         <p>使用以上检测方法，excellent.png和excellent_cn.png这两张图片就不能被检测出已经使用。【修改为使用图片完整名字或路径即可解决】</p> 
+         <p>2、图片实际未被使用，但是被认为已使用。<br> （a）项目中存在abc.png 和bc.png两种图片，只使用了abc.png这张图片，bc.png也会被误检测出被使用。【使用图片相对路径可避免该问题】<br> （b）项目中有a.png图片，但是在代码中有创建一个名字为a.png的图片逻辑。<br> （c）项目中存在a.png,但是在代码中存在a.png这样的字符串或者非加载图片的命名。</p> 
+         <h4><a id="_157"></a>五、其他实现方式</h4> 
+         <p>1、将图片生成静态引用<br> <a href="https://blog.csdn.net/lebsharing/article/details/122969878">图片静态引用</a></p> 
+        </div> 
+        <link href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/markdown_views-f23dff6052.css" rel="stylesheet"> 
+        <link href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/style-c216769e99.css" rel="stylesheet"> 
+       </div> 
+       <div id="treeSkill"></div> 
+      </article>  
+     </div> 
+     <div class="directory-boxshadow-dialog" style="display:none;"> 
+      <div class="directory-boxshadow-dialog-box"> 
+      </div> 
+      <div class="vip-limited-time-offer-box-new" id="vip-limited-time-offer-box-new"> 
+       <img class="limited-img limited-img-new" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fvip-limited-close-newWhite.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"> 
+       <div class="vip-limited-time-top">
+         确定要放弃本次机会？ 
+       </div> 
+       <span class="vip-limited-time-text">福利倒计时</span> 
+       <div class="limited-time-box-new"> 
+        <span class="time-hour"></span> 
+        <i>:</i> 
+        <span class="time-minite"></span> 
+        <i>:</i> 
+        <span class="time-second"></span> 
+       </div> 
+       <div class="limited-time-vip-box"> 
+        <p> <img class="coupon-img" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fvip-limited-close-roup.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"> <span class="def">立减 ¥</span> <span class="active limited-num"></span> </p> 
+        <span class="">普通VIP年卡可用</span> 
+       </div> 
+       <a class="limited-time-btn-new" href="https://mall.csdn.net/vip" data-report-click="{&quot;spm&quot;:&quot;1001.2101.3001.9621&quot;}" data-report-query="spm=1001.2101.3001.9621">立即使用</a> 
+      </div> 
+     </div>     
+     <a id="commentBox" name="commentBox"></a>         
+    </main>     
+   </div> 
+   <div class="recommend-right align-items-stretch clearfix" id="rightAside" data-type="recommend"> 
+    <aside class="recommend-right_aside"> 
+     <div id="recommend-right"> 
+      <div class="flex-column aside-box groupfile" id="groupfile"> 
+       <div class="groupfile-div"> 
+        <h3 class="aside-title">目录</h3> 
+        <div class="align-items-stretch group_item"> 
+         <div class="pos-box"> 
+          <div class="scroll-box"> 
+           <div class="toc-box"></div> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+      <div class="aside-box kind_person d-flex flex-column"> 
+       <h3 class="aside-title">分类专栏</h3> 
+       <div class="align-items-stretch kindof_item" id="kind_person_column"> 
+        <div class="aside-content"> 
+         <ul> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_9738194.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_9738194.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756913.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> flutter exception </span> </a> <span class="special-column-num">3篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_9591437.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_9591437.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756754.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> flutter </span> </a> <span class="special-column-num">13篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_11000978.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_11000978.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756738.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> mac </span> </a> <span class="special-column-num">1篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_11000979.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_11000979.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756724.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> web </span> </a> <span class="special-column-num">1篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_10478974.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_10478974.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756913.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> CocosCreater </span> </a> <span class="special-column-num">5篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_9937982.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_9937982.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756927.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> 面试题 </span> </a> <span class="special-column-num">2篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_9726452.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_9726452.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756919.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> Android Studio </span> </a> <span class="special-column-num">1篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_3068415.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_3068415.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756780.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> Android </span> </a> <span class="special-column-num">65篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_5874949.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_5874949.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756928.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> 数据库 </span> </a> <span class="special-column-num">2篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_5875133.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_5875133.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756916.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> Java </span> </a> <span class="special-column-num">2篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_6425382.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_6425382.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756927.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> UML </span> </a> <span class="special-column-num">1篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_6456995.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_6456995.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756780.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> android Exception </span> </a> <span class="special-column-num">12篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_6639292.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_6639292.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756919.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> bluetooth </span> </a> <span class="special-column-num">1篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_6785681.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_6785681.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756928.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> dos </span> </a> <span class="special-column-num">3篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_7010753.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_7010753.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756916.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> 工具 </span> </a> <span class="special-column-num">8篇</span> </li> 
+          <li> <a class="clearfix special-column-name" href="https://blog.csdn.net/lebsharing/category_7053054.html" data-report-click="{&quot;mod&quot;:&quot;popu_537&quot;,&quot;spm&quot;:&quot;1001.2101.3001.4137&quot;,&quot;strategy&quot;:&quot;pc付费专栏左侧入口&quot;,&quot;dest&quot;:&quot;https://blog.csdn.net/lebsharing/category_7053054.html&quot;,&quot;ab&quot;:&quot;new&quot;}"> 
+            <div class="special-column-bar "></div> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fimg-blog.csdnimg.cn%2F20201014180756913.png%3Fx-oss-process%3Dimage%2Fresize%2Cm_fixed%2Ch_64%2Cw_64&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'"> <span class=""> ant </span> </a> <span class="special-column-num">2篇</span> </li> 
+         </ul> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </aside> 
+   </div> 
+   <div class="recommend-right1  align-items-stretch clearfix" id="rightAsideConcision" data-type="recommend"> 
+    <aside class="recommend-right_aside"> 
+     <div id="recommend-right-concision"> 
+      <div class="flex-column aside-box groupfile" id="groupfileConcision"> 
+       <div class="groupfile-div1"> 
+        <h3 class="aside-title">目录</h3> 
+        <div class="align-items-stretch group_item"> 
+         <div class="pos-box"> 
+          <div class="scroll-box"> 
+           <div class="toc-box"></div> 
+          </div> 
+         </div> 
+        </div> 
+       </div> 
+      </div> 
+     </div> 
+    </aside> 
+   </div> 
+  </div> 
+  <div class="mask-dark"></div> 
+  <div class="skin-boxshadow"></div> 
+  <div class="directory-boxshadow"></div> 
+  <div class="comment-side-box-shadow comment-side-tit-close" id="commentSideBoxshadow"> 
+   <div class="comment-side-content"> 
+    <div class="comment-side-tit"> 
+     <span class="comment-side-tit-count">评论</span> 
+     <img class="comment-side-tit-close" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FcloseBt.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490">
+    </div>  
+    <div id="pcFlodCommentSideBox" class="pc-flodcomment-sidebox"> 
+     <div class="comment-fold-tit">
+      <span id="lookUnFlodComment" class="back"><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FcommentArrowLeftWhite.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""></span>被折叠的&nbsp;
+      <span class="count"></span>&nbsp;条评论 
+      <a href="https://blogdev.blog.csdn.net/article/details/122245662" class="tip" target="_blank">为什么被折叠?</a> 
+      <a href="https://bbs.csdn.net/forums/FreeZone" class="park" target="_blank"> <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FiconPark.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490">到【灌水乐园】发言</a> 
+     </div> 
+     <div class="comment-fold-content"></div> 
+     <div id="lookBadComment" class="look-bad-comment side-look-comment"> 
+      <a class="look-more-comment">查看更多评论<img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FcommentArrowDownWhite.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""></a> 
+     </div> 
+    </div> 
+   </div> 
+   <div class="comment-rewarddialog-box"> 
+    <div class="form-box"> 
+     <div class="title-box">
+       添加红包 
+      <a class="btn-form-close"></a> 
+     </div> 
+     <form id="commentRewardForm"> 
+      <div class="ipt-box"> 
+       <label for="txtName">祝福语</label> 
+       <div class="ipt-btn-box"> 
+        <input type="text" name="name" id="txtName" autocomplete="off" maxlength="50"> 
+        <a class="btn-ipt btn-random"></a> 
+       </div> 
+       <p class="notice">请填写红包祝福语或标题</p> 
+      </div> 
+      <div class="ipt-box"> 
+       <label for="txtSendAmount">红包数量</label> 
+       <div class="ipt-txt-box"> 
+        <input type="text" name="sendAmount" maxlength="4" id="txtSendAmount" placeholder="请填写红包数量(最小10个)" autocomplete="off"> 
+        <span class="after-txt">个</span> 
+       </div> 
+       <p class="notice">红包个数最小为10个</p> 
+      </div> 
+      <div class="ipt-box"> 
+       <label for="txtMoney">红包总金额</label> 
+       <div class="ipt-txt-box error"> 
+        <input type="text" name="money" maxlength="5" id="txtMoney" placeholder="请填写总金额(最低5元)" autocomplete="off"> 
+        <span class="after-txt">元</span> 
+       </div> 
+       <p class="notice">红包金额最低5元</p> 
+      </div> 
+      <div class="balance-info-box"> 
+       <label>余额支付</label> 
+       <div class="balance-info">
+         当前余额
+        <span class="balance">3.43</span>元 
+        <a href="https://i.csdn.net/#/wallet/balance/recharge" class="link-charge" target="_blank">前往充值 &gt;</a> 
+       </div> 
+      </div> 
+      <div class="opt-box"> 
+       <div class="pay-info">
+         需支付：
+        <span class="price">10.00</span>元 
+       </div> 
+       <button type="button" class="ml-auto btn-cancel">取消</button> 
+       <button type="button" class="ml8 btn-submit" disabled="true">确定</button> 
+      </div> 
+     </form> 
+    </div> 
+   </div> 
+   <div class="rr-guide-box"> 
+    <div class="rr-first-box"> 
+     <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FguideRedReward02.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+     <button class="btn-guide-known next">下一步</button> 
+    </div> 
+    <div class="rr-second-box"> 
+     <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2FguideRedReward03.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+     <button class="btn-guide-known known">知道了</button> 
+    </div> 
+   </div> 
+  </div> 
+  <div class="redEnvolope" id="redEnvolope"> 
+   <div class="env-box"> 
+    <div class="env-container"> 
+     <div class="pre-open" id="preOpen"> 
+      <div class="top"> 
+       <header> 
+        <img class="clearTpaErr" :src="redpacketAuthor.avatar" alt="" src="https://ziquyun.com/main/csdn/img?url=&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"> 
+        <div class="author">
+         成就一亿技术人!
+        </div> 
+       </header> 
+       <div class="bot-icon"></div> 
+      </div> 
+      <footer> 
+       <div class="red-openbtn open-start"></div> 
+       <div class="tip">
+         领取后你会自动成为博主和红包主的粉丝 
+        <a class="rule" target="_blank">规则</a> 
+       </div> 
+      </footer> 
+     </div> 
+     <div class="opened" id="opened"> 
+      <div class="bot-icon"> 
+       <header> 
+        <a class="creatorUrl" href="" target="_blank"> <img class="clearTpaErr" src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fprofile-avatar.csdnimg.cn%2Fdefault.jpg%212&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> </a> 
+        <div class="author"> 
+         <div class="tt">
+          hope_wisdom
+         </div> 发出的红包 
+        </div> 
+       </header> 
+      </div> 
+      <div class="receive-box"> 
+       <header></header> 
+       <div class="receive-list"> 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+    <div class="close-btn"></div> 
+   </div> 
+  </div> 
+  <div class="pay-code"> 
+   <div class="pay-money">
+    实付
+    <span class="pay-money-span" data-nowprice="" data-oldprice="">元</span>
+   </div> 
+   <div class="content-blance">
+    <a class="blance-bt" href="javascript:;">使用余额支付</a>
+   </div> 
+   <div class="content-code"> 
+    <div id="payCode" data-id=""> 
+     <div class="renovate"> 
+      <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fpay-time-out.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"> 
+      <span>点击重新获取</span> 
+     </div> 
+    </div> 
+    <div class="pay-style">
+     <span><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fweixin.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"></span>
+     <span><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fzhifubao.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"></span>
+     <span><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fjingdong.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490"></span>
+     <span class="text">扫码支付</span>
+    </div> 
+   </div> 
+   <div class="bt-close"> 
+    <svg t="1567152543821" class="icon" viewbox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="10924" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12"> 
+     <defs> 
+      <style type="text/css"></style> 
+     </defs> 
+     <path d="M512 438.378667L806.506667 143.893333a52.032 52.032 0 1 1 73.6 73.621334L585.621333 512l294.485334 294.485333a52.074667 52.074667 0 0 1-73.6 73.642667L512 585.621333 217.514667 880.128a52.053333 52.053333 0 1 1-73.621334-73.642667L438.378667 512 143.893333 217.514667a52.053333 52.053333 0 1 1 73.621334-73.621334L512 438.378667z" fill="" p-id="10925"></path> 
+    </svg> 
+   </div> 
+   <div class="pay-balance"> 
+    <input type="radio" class="pay-code-radio" data-type="details"> 
+    <span class="span">钱包余额</span> 
+    <span class="balance" style="color:#FC5531;font-size:14px;">0</span> 
+    <div class="pay-code-tile"> 
+     <img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Fpay-help.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""> 
+     <div class="pay-code-content"> 
+      <div class="span"> 
+       <p class="title">抵扣说明：</p> 
+       <p> 1.余额是钱包充值的虚拟货币，按照1:1的比例进行支付金额的抵扣。<br> 2.余额无法直接购买下载，可以购买VIP、付费专栏及课程。</p> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <a class="pay-balance-con" href="https://i.csdn.net/#/wallet/balance/recharge" target="_blank"><img src="https://ziquyun.com/main/csdn/img?url=https%3A%2F%2Fcsdnimg.cn%2Frelease%2Fblogv2%2Fdist%2Fpc%2Fimg%2Frecharge.png&amp;rfUrl=https%3A%2F%2Fblog.csdn.net%2Flebsharing%2Farticle%2Fdetails%2F122967490" alt=""><span>余额充值</span></a> 
+  </div> 
+  <div style="display:none;">  
+  </div> 
+  <div class="keyword-dec-box" id="keywordDecBox"></div>       
+  <link rel="stylesheet" href="https://g.csdnimg.cn/lib/cboxEditor/1.1.6/embed-editor.min.css"> 
+  <link rel="stylesheet" href="https://csdnimg.cn/release/blog_editor_html/release1.6.12/ckeditor/plugins/codesnippet/lib/highlight/styles/atom-one-light.css">                 
+ </body>
+</html>
